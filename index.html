@@ -156,7 +156,10 @@
                     <input type="text" id="customer-name" placeholder="الاسم" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-green-500" required>
                     <input type="tel" id="customer-phone" placeholder="رقم الواتساب (إجباري)" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-green-500" required>
                     <input type="email" id="customer-email" placeholder="الإيميل (اختياري)" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-green-500">
-                    <input type="text" id="discount-code-input" placeholder="كود الخصم (إن وجد)" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <div>
+                        <input type="text" id="discount-code-input" placeholder="كود الخصم (إن وجد)" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <p id="code-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                    </div>
                     <textarea id="customer-notes" rows="2" placeholder="ملاحظات إضافية" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
                     <button type="submit" class="w-full btn-primary font-bold py-3 text-lg rounded-lg">إرسال الطلب الآن</button>
                 </div>
@@ -353,20 +356,56 @@
                     orderModal.classList.remove("hidden");
                 }
             }
-            window.closeOrderModal = function(){ orderModal.classList.add("hidden"); orderForm.reset(); }
+            window.closeOrderModal = function(){ 
+                const codeErrorEl = document.getElementById('code-error');
+                codeErrorEl.classList.add('hidden');
+                orderModal.classList.add("hidden"); 
+                orderForm.reset(); 
+            }
             
             function handleOrderSubmit(event){
                 event.preventDefault();
+                const codeErrorEl = document.getElementById('code-error');
+                codeErrorEl.classList.add('hidden');
+
                 const productName = productNameInput.value;
                 const selectedPackage = document.getElementById('selected-package-input').value;
                 const customerName = document.getElementById("customer-name").value;
                 const customerPhone = document.getElementById("customer-phone").value;
                 const customerEmail = document.getElementById("customer-email").value;
-                const discountCode = document.getElementById("discount-code-input").value;
+                const discountCode = document.getElementById("discount-code-input").value.trim();
                 const customerNotes = document.getElementById("customer-notes").value;
+                
                 let message = `*طلب جديد من متجر وفرنهالك تك*\n\n*المنتج:* ${productName}\n*الباقة المطلوبة:* ${selectedPackage}\n*الاسم:* ${customerName}\n*رقم الواتساب:* ${customerPhone}\n`;
                 if (customerEmail) message += `*الإيميل:* ${customerEmail}\n`;
-                if (discountCode) message += `*كود الخصم:* ${discountCode}\n`;
+
+                if (discountCode) {
+                    try {
+                        const validCodes = JSON.parse(localStorage.getItem('validDiscountCodes')) || {};
+                        if (validCodes[discountCode]) {
+                            const percentage = validCodes[discountCode];
+                            message += `*كود الخصم (تم التحقق):* ${discountCode} (${percentage}%)\n`;
+                            
+                            delete validCodes[discountCode];
+                            localStorage.setItem('validDiscountCodes', JSON.stringify(validCodes));
+                            
+                            finalizeOrder(message, customerNotes);
+                        } else {
+                            codeErrorEl.textContent = 'كود الخصم غير صحيح أو تم استخدامه.';
+                            codeErrorEl.classList.remove('hidden');
+                            return; 
+                        }
+                    } catch (e) {
+                        console.error("Failed to access localStorage:", e);
+                        message += `*كود الخصم (فشل التحقق):* ${discountCode}\n`;
+                        finalizeOrder(message, customerNotes);
+                    }
+                } else {
+                    finalizeOrder(message, customerNotes);
+                }
+            }
+
+            function finalizeOrder(message, customerNotes) {
                 if (customerNotes) message += `*ملاحظات:* ${customerNotes}\n\n`;
                 message += `برجاء تأكيد الطلب وتوضيح طرق الدفع المتاحة.`;
                 const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
@@ -376,14 +415,18 @@
 
             // --- Game Functions ---
             function checkPlayStatus() {
-                const lastPlayDate = localStorage.getItem('lastPlayDate');
-                const today = new Date().toISOString().split('T')[0];
-                if (lastPlayDate === today) {
-                    playGameBtn.disabled = true;
-                    playGameBtn.textContent = 'لقد لعبت اليوم، عد غدًا!';
-                } else {
-                    playGameBtn.disabled = false;
-                    playGameBtn.textContent = '🎁 العب واربح خصم';
+                try {
+                    const lastPlayDate = localStorage.getItem('lastPlayDate');
+                    const today = new Date().toISOString().split('T')[0];
+                    if (lastPlayDate === today) {
+                        playGameBtn.disabled = true;
+                        playGameBtn.textContent = 'لقد لعبت اليوم، عد غدًا!';
+                    } else {
+                        playGameBtn.disabled = false;
+                        playGameBtn.textContent = '🎁 العب واربح خصم';
+                    }
+                } catch(e) {
+                     console.error("Could not access localStorage. Game play limit disabled.");
                 }
             }
 
@@ -448,8 +491,12 @@
                 cancelAnimationFrame(animationFrameId);
                 scoreDisplay.classList.add('hidden');
                 
-                const today = new Date().toISOString().split('T')[0];
-                localStorage.setItem('lastPlayDate', today);
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    localStorage.setItem('lastPlayDate', today);
+                } catch(e) {
+                    console.error("Could not access localStorage to set play date.");
+                }
                 
                 finalScoreEl.textContent = score;
 
@@ -469,6 +516,14 @@
                 discountModalTitle.textContent = "تهانينا! لقد ربحت خصمًا!";
                 discountWonContainer.classList.remove('hidden');
                 noDiscountContainer.classList.add('hidden');
+
+                try {
+                    const validCodes = JSON.parse(localStorage.getItem('validDiscountCodes')) || {};
+                    validCodes[code] = discountPercentage;
+                    localStorage.setItem('validDiscountCodes', JSON.stringify(validCodes));
+                } catch (e) {
+                    console.error("Failed to save discount code to localStorage:", e);
+                }
             }
             
             function showNoDiscount() {
