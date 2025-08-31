@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر وفرنهالك تك - اشتراكاتك الرقمية</title>
+    <title>متجر يوزر برايميوم - اشتراكاتك الرقمية</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -75,9 +75,13 @@
         #game-canvas {
             background-color: #000;
             border: 2px solid #10b981;
+            cursor: none;
         }
         .copy-feedback {
             transition: opacity 0.5s;
+        }
+        #chat-widget {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         }
     </style>
 </head>
@@ -87,7 +91,7 @@
         <!-- Hero Section -->
         <header class="text-center py-16 md:py-20 mb-12">
             <h1 class="text-5xl md:text-7xl font-black text-white mb-4">
-                متجر <span class="text-green-400">وفرنهالك تك</span>
+                متجر <span class="text-green-400">يوزر برايميوم</span>
             </h1>
             <p class="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-10">
                 بوابتك إلى عالم الاشتراكات الرقمية. جودة، سرعة، وأمان في مكان واحد.
@@ -96,7 +100,7 @@
                 <button onclick="openAiHelperModal()" class="btn-primary font-bold py-3 px-8 text-lg rounded-lg w-full sm:w-auto">
                     ✨ المساعد الذكي
                 </button>
-                <button id="play-game-btn" onclick="openGameModal()" class="btn-game font-bold py-3 px-8 text-lg rounded-lg w-full sm:w-auto">
+                <button id="play-game-btn" onclick="openGameSelectionModal()" class="btn-game font-bold py-3 px-8 text-lg rounded-lg w-full sm:w-auto">
                     🎁 العب واربح خصم
                 </button>
             </div>
@@ -130,12 +134,11 @@
 
         <!-- Footer -->
         <footer class="text-center mt-20 text-gray-500 border-t border-gray-800 pt-8">
-            <p>&copy; 2024 متجر وفرنهالك تك. جميع الحقوق محفوظة.</p>
+            <p>&copy; 2024 متجر يوزر برايميوم. جميع الحقوق محفوظة.</p>
         </footer>
     </div>
 
     <!-- Modals -->
-    <!-- Order Modal -->
     <div id="order-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
         <div class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm" onclick="closeOrderModal()"></div>
         <div class="modal-content rounded-xl shadow-2xl w-11/12 max-w-lg m-4 transform transition-all relative" onclick="event.stopPropagation()">
@@ -171,8 +174,6 @@
             </form>
         </div>
     </div>
-
-    <!-- Gemini AI Helper Modal -->
     <div id="ai-helper-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
         <div class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm" onclick="closeAiHelperModal()"></div>
         <div class="modal-content rounded-xl shadow-2xl w-11/12 max-w-2xl m-4 transform transition-all relative flex flex-col" style="max-height: 90vh;">
@@ -193,14 +194,23 @@
             </div>
         </div>
     </div>
-
-    <!-- Game Modal -->
+    <div id="game-selection-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm" onclick="closeGameSelectionModal()"></div>
+        <div class="modal-content rounded-xl shadow-2xl w-11/12 max-w-md m-4 transform transition-all relative text-center p-8">
+            <h2 class="text-3xl font-bold text-white mb-6">اختر لعبتك المفضلة!</h2>
+            <div class="flex flex-col gap-4">
+                <button onclick="openGameModal('flappy')" class="btn-primary font-bold py-3 text-lg rounded-lg">🚀 لعبة الصاروخ</button>
+                <button onclick="openGameModal('pong')" class="btn-primary font-bold py-3 text-lg rounded-lg">🎾 لعبة التحدي</button>
+            </div>
+             <button onclick="closeGameSelectionModal()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 text-lg rounded-lg mt-6">إلغاء</button>
+        </div>
+    </div>
     <div id="game-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
         <div id="game-container" class="relative">
             <canvas id="game-canvas" width="400" height="600"></canvas>
             <div id="start-screen" class="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center text-center p-4">
-                <h2 id="start-title" class="text-4xl font-bold text-white mb-4">لعبة الصاروخ</h2>
-                <p id="start-subtitle" class="text-white mb-8">انقر للطيران وتفادي الحواجز. اربح كود خصم عند الخسارة!</p>
+                <h2 id="start-title" class="text-4xl font-bold text-white mb-4"></h2>
+                <p id="start-subtitle" class="text-white mb-8"></p>
                 <button id="start-game-btn" class="btn-primary font-bold py-3 px-8 text-lg rounded-lg">ابدأ اللعب</button>
                 <div id="attempts-left" class="text-amber-400 mt-4 text-lg"></div>
             </div>
@@ -208,14 +218,11 @@
              <button onclick="closeGameModal()" class="absolute top-4 left-4 text-white text-3xl font-bold" style="text-shadow: 2px 2px 4px #000;">&times;</button>
         </div>
     </div>
-    
-    <!-- Discount/Game Over Modal -->
     <div id="discount-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
          <div class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm"></div>
          <div class="modal-content rounded-xl shadow-2xl w-11/12 max-w-md m-4 transform transition-all relative text-center p-8">
             <h2 id="discount-modal-title" class="text-4xl font-bold text-amber-400 mb-4"></h2>
             <p class="text-white text-lg mb-2">نتيجتك النهائية: <span id="final-score" class="font-bold">0</span></p>
-            
             <div id="discount-won-container" class="hidden">
                 <p class="text-white text-lg mb-6">لقد ربحت خصمًا رائعًا!</p>
                 <div class="bg-gray-900 border-2 border-dashed border-green-400 rounded-lg p-4 my-6">
@@ -227,18 +234,42 @@
                     <div id="copy-feedback" class="absolute -bottom-2 right-0 left-0 text-green-400 opacity-0">تم النسخ بنجاح!</div>
                 </div>
             </div>
-
             <div id="no-discount-container" class="hidden">
                  <p class="text-white text-lg my-6">حظ أوفر في المرة القادمة!</p>
             </div>
-
             <button onclick="closeDiscountModal()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 text-lg rounded-lg mt-4">أغلق النافذة</button>
          </div>
     </div>
-
+    <div class="fixed bottom-6 right-6 z-40">
+        <button id="chat-bubble" class="bg-green-500 w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-300 hover:scale-110">
+            <svg id="chat-icon-open" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+             <svg id="chat-icon-close" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div id="chat-widget" class="fixed bottom-24 right-6 w-80 md:w-96 bg-gray-900 rounded-lg shadow-2xl border border-gray-700 transform translate-y-10 opacity-0 hidden">
+            <div class="p-4 bg-gray-800 rounded-t-lg flex justify-between items-center">
+                <h3 class="font-bold text-white text-lg">خدمة العملاء</h3>
+            </div>
+            <div class="p-4 h-48 text-gray-300">
+                مرحبًا بك! كيف يمكننا مساعدتك اليوم؟
+            </div>
+            <div class="p-4 border-t border-gray-700">
+                <form id="chat-form" class="flex gap-2">
+                    <input id="chat-input" type="text" placeholder="اكتب رسالتك هنا..." class="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <button type="submit" class="p-2 bg-green-500 rounded-md text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- DATA (Global) ---
         const products = [
              { id: 'capcut', title: '🎬 CapCut Pro', image: 'https://placehold.co/600x400/000000/10b981?text=CapCut', features: ['إزالة العلامة المائية', 'استخدام قوالب البرو', 'أدوات الذكاء الاصطناعي', 'تخزين سحابي 1 تيرابايت'], packages: [ { name: 'شخصي - 1 شهر (ميل جديد)', price: '399 جنيه' }, { name: 'شخصي - 12 شهر (عرض)', price: '2700 جنيه' }, { name: 'شخصي - 12 شهر (إيميل قديم)', price: '5000 جنيه' } ], notes: 'لأفضل سعر، استخدم إيميل جديد لم يفعل مسبقًا على CapCut.'},
              { id: 'chatgpt', title: '🔥 ChatGPT & Sora AI', image: 'https://placehold.co/600x400/000000/10b981?text=ChatGPT', features: ['دخول GPT-5', '80 Prompt كل 3 ساعات', 'إنشاء فيديوهات بـ Sora', 'دعم الإضافات (Plugins)'], packages: [ { name: 'مشترك - 1 شهر', price: '299 جنيه' }, { name: 'مشترك - 3 شهور', price: '799 جنيه' }, { name: 'مشترك - 12 شهر', price: '2399 جنيه' }, { name: 'شخصي خاص - 1 شهر', price: '900 جنيه' } ], notes: 'الحسابات المشتركة يتم تسليمها فور الدفع.'},
@@ -251,18 +282,17 @@
              { id: 'envato', title: '🔸 Envato Elements', image: 'https://placehold.co/600x400/000000/10b981?text=Envato', features: ['يشمل كل محتوى الموقع', 'تحميل 50-60 ملف يوميًا', 'دخول مباشر بيوزر وباسورد'], packages: [ { name: 'مشترك - 3 أشهر', price: '599 جنيه' }, { name: 'مشترك - 12 شهر', price: '1500 جنيه' }, { name: 'شخصي (8 أجهزة) - 12 شهر', price: '5800 جنيه' } ], notes: 'خصم خاص للحساب الشخصي في حال طلب أكثر من جهاز.'},
              { id: 'elevenlabs', title: '🎙 ElevenLabs Creator', image: 'https://placehold.co/600x400/000000/10b981?text=ElevenLabs', features: [ 'تسليم فوري (Promo Code)', '330,000 كريدت إجمالي', '3 شهور مجانية مدفوعة', 'صالح للحسابات الجديدة فقط' ], packages: [ { name: 'خطة Creator - 3 شهور', price: '1250 جنيه' } ], notes: 'يجب تفعيل الكود خلال 14 يومًا. ضمان كامل على صلاحية الكود.'}
         ];
-        const whatsappNumber = "201150580198";
+        const whatsappNumber = "201094566402";
 
-        // --- SCRIPT INITIALIZATION (RUNS AFTER DOM IS LOADED) ---
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- DOM Elements ---
             const productsGrid = document.getElementById('products-grid');
             const orderModal = document.getElementById('order-modal');
             const orderForm = document.getElementById('order-form');
             const modalProductTitle = document.getElementById('modal-product-title');
             const productNameInput = document.getElementById('product-name-input');
             const aiHelperModal = document.getElementById('ai-helper-modal');
+            const gameSelectionModal = document.getElementById('game-selection-modal');
             const gameModal = document.getElementById('game-modal');
             const startScreen = document.getElementById('start-screen');
             const startGameBtn = document.getElementById('start-game-btn');
@@ -277,13 +307,18 @@
             const playGameBtn = document.getElementById('play-game-btn');
             const canvas = document.getElementById('game-canvas');
             const ctx = canvas.getContext('2d');
+            const chatWidget = document.getElementById('chat-widget');
+            const chatBubble = document.getElementById('chat-bubble');
+            const chatIconOpen = document.getElementById('chat-icon-open');
+            const chatIconClose = document.getElementById('chat-icon-close');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
             
-            // Game Variables
-            let bird, pipes, score, gameOver, animationFrameId, attemptsLeft;
+            let bird, pipes, score, gameOver, animationFrameId, attemptsLeft, currentGameType;
+            let pongBall, pongPaddle;
             const birdImg = new Image();
             birdImg.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBGRkZGIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNNi41IDEzLjVsLTMgMy41TDggMjFsNC00TDEwLjUgMTVsMS41LTFNOSAxbC0xIDEtNyA3IDEgNCA0IDQgMy0xIDctNy0zLTQtMy0zeiIvPjxwYXRoIGQ9Ik0xNSA2bDMgMyIvPjxwYXRoIGQ9Ik0yMiA3bC0zIDcgNC0xIDEtNEw0IDRsNy0zIDQgM3oiLz48L3N2Zz4=';
             
-            // --- General Functions ---
             function renderProducts() {
                 if(!productsGrid) return;
                 productsGrid.innerHTML = products.map(product => `
@@ -381,7 +416,7 @@
                 const discountCode = document.getElementById("discount-code-input").value.trim();
                 const customerNotes = document.getElementById("customer-notes").value;
                 
-                let message = `*طلب جديد من متجر وفرنهالك تك*\n\n*المنتج:* ${productName}\n*الباقة المطلوبة:* ${selectedPackage}\n*الاسم:* ${customerName}\n*رقم الواتساب:* ${customerPhone}\n`;
+                let message = `*طلب جديد من متجر يوزر برايميوم*\n\n*المنتج:* ${productName}\n*الباقة المطلوبة:* ${selectedPackage}\n*الاسم:* ${customerName}\n*رقم الواتساب:* ${customerPhone}\n`;
                 if (customerEmail) message += `*الإيميل:* ${customerEmail}\n`;
                 if (discountPercentage) {
                     message += `*كود الخصم (تم التحقق):* ${discountCode} (${discountPercentage}%)\n`;
@@ -417,7 +452,6 @@
                 });
             }
             
-            // --- Game Functions ---
             function lockGameForToday() {
                  try {
                     const today = new Date().toISOString().split('T')[0];
@@ -440,16 +474,32 @@
                      console.error("Could not access localStorage. Game play limit disabled.");
                 }
             }
-            function resetGameForNewAttempt() {
-                bird = { x: 50, y: 150, width: 40, height: 30, velocity: 0, gravity: 0.3, lift: -6 };
-                pipes = [];
+            function resetGameForNewAttempt(gameType) {
                 score = 0;
                 gameOver = false;
                 scoreDisplay.textContent = score;
+                if (gameType === 'flappy') {
+                    bird = { x: 50, y: 150, width: 40, height: 30, velocity: 0, gravity: 0.3, lift: -6 };
+                    pipes = [];
+                } else if (gameType === 'pong') {
+                    pongPaddle = { x: canvas.width / 2 - 50, y: canvas.height - 30, width: 100, height: 15 };
+                    pongBall = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speedX: 3, speedY: -3 };
+                }
             }
-            function gameLoop() {
+            
+            function startGame() {
+                startScreen.classList.add('hidden');
+                scoreDisplay.classList.remove('hidden');
+                if (currentGameType === 'flappy') {
+                    flappyGameLoop();
+                } else if (currentGameType === 'pong') {
+                    pongGameLoop();
+                }
+            }
+
+            function flappyGameLoop() {
                 if (gameOver) return;
-                animationFrameId = requestAnimationFrame(gameLoop);
+                animationFrameId = requestAnimationFrame(flappyGameLoop);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 bird.velocity += bird.gravity;
                 bird.y += bird.velocity;
@@ -459,14 +509,12 @@
                     const pipeY = Math.random() * (canvas.height - 250) + 50;
                     pipes.push({ x: canvas.width, y: pipeY, width: 50, gap: 150, passed: false });
                 }
-
                 for (let i = pipes.length - 1; i >= 0; i--) {
                     let p = pipes[i];
                     p.x -= 3;
-                    ctx.fillStyle = '#059669'; // Green pipes
+                    ctx.fillStyle = '#059669';
                     ctx.fillRect(p.x, 0, p.width, p.y);
                     ctx.fillRect(p.x, p.y + p.gap, p.width, canvas.height - p.y - p.gap);
-                    
                     if (bird.x < p.x + p.width && bird.x + bird.width > p.x && (bird.y < p.y || bird.y + bird.height > p.y + p.gap)) {
                         endGame(); return;
                     }
@@ -477,27 +525,50 @@
                     }
                     if (p.x + p.width < 0) { pipes.splice(i, 1); }
                 }
-                
                 if (bird.y + bird.height > canvas.height || bird.y < 0) {
                     endGame(); return;
                 }
             }
-            function startGame() {
-                resetGameForNewAttempt();
-                startScreen.classList.add('hidden');
-                scoreDisplay.classList.remove('hidden');
-                animationFrameId = requestAnimationFrame(gameLoop);
+
+            function pongGameLoop() {
+                if (gameOver) return;
+                pongBall.x += pongBall.speedX;
+                pongBall.y += pongBall.speedY;
+                if (pongBall.x + pongBall.radius > canvas.width || pongBall.x - pongBall.radius < 0) { pongBall.speedX *= -1; }
+                if (pongBall.y - pongBall.radius < 0) { pongBall.speedY *= -1; }
+                if (pongBall.y + pongBall.radius > canvas.height) { endGame(); return; }
+                if (pongBall.y + pongBall.radius > pongPaddle.y && pongBall.x > pongPaddle.x && pongBall.x < pongPaddle.x + pongPaddle.width) {
+                    pongBall.speedY *= -1.05;
+                    pongBall.speedX *= 1.05;
+                    score++;
+                    scoreDisplay.textContent = score;
+                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#10b981';
+                ctx.fillRect(pongPaddle.x, pongPaddle.y, pongPaddle.width, pongPaddle.height);
+                ctx.beginPath();
+                ctx.arc(pongBall.x, pongBall.y, pongBall.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                animationFrameId = requestAnimationFrame(pongGameLoop);
             }
+
+            function movePaddle(event) {
+                const rect = canvas.getBoundingClientRect();
+                let root = document.documentElement;
+                let newX = (event.clientX || event.touches[0].clientX) - rect.left - root.scrollLeft;
+                if (newX > 0 && newX < canvas.width) {
+                    pongPaddle.x = newX - pongPaddle.width / 2;
+                }
+            }
+
             function endGame() {
                 if (gameOver) return;
                 gameOver = true;
                 cancelAnimationFrame(animationFrameId);
                 scoreDisplay.classList.add('hidden');
-                
                 attemptsLeft--;
-                
                 finalScoreEl.textContent = score;
-
                 if (score > 0) {
                     lockGameForToday();
                     discountModalTitle.textContent = "تهانينا! لقد ربحت خصمًا!";
@@ -511,12 +582,11 @@
                         validCodes[code] = discountPercentage;
                         localStorage.setItem('validDiscountCodes', JSON.stringify(validCodes));
                     } catch (e) { console.error("Failed to save discount code to localStorage:", e); }
-                
                 } else if (attemptsLeft > 0) {
                     document.getElementById('start-title').textContent = 'محاولة أخرى!';
                     document.getElementById('attempts-left').textContent = `تبقى لديك ${attemptsLeft} محاولات.`;
                     startScreen.classList.remove('hidden');
-                    return; // Don't show modal yet
+                    return;
                 } else {
                     lockGameForToday();
                     discountModalTitle.textContent = "انتهت اللعبة!";
@@ -525,14 +595,30 @@
                 }
                 setTimeout(() => discountModal.classList.remove('hidden'), 500);
             }
-            window.openGameModal = function() {
+            window.openGameSelectionModal = function() {
                 if(playGameBtn.disabled) return;
+                gameSelectionModal.classList.remove('hidden');
+            }
+            window.closeGameSelectionModal = function() {
+                gameSelectionModal.classList.add('hidden');
+            }
+            window.openGameModal = function(gameType) {
+                currentGameType = gameType;
+                closeGameSelectionModal();
+                const startTitle = document.getElementById('start-title');
+                const startSubtitle = document.getElementById('start-subtitle');
+                if (gameType === 'flappy') {
+                    startTitle.textContent = 'لعبة الصاروخ';
+                    startSubtitle.textContent = 'انقر للطيران وتفادي الحواجز.';
+                } else if (gameType === 'pong') {
+                    startTitle.textContent = 'لعبة التحدي';
+                    startSubtitle.textContent = 'حرّك المضرب لصد الكرة وحقق أعلى نتيجة.';
+                }
                 attemptsLeft = 3;
-                document.getElementById('start-title').textContent = 'لعبة الصاروخ';
-                document.getElementById('start-subtitle').textContent = 'انقر للطيران وتفادي الحواجز. اربح كود خصم عند الخسارة!';
                 document.getElementById('attempts-left').textContent = '';
                 gameModal.classList.remove('hidden');
                 startScreen.classList.remove('hidden');
+                resetGameForNewAttempt(gameType);
             }
             window.closeGameModal = function() {
                 gameOver = true;
@@ -551,12 +637,36 @@
                     setTimeout(() => { feedback.style.opacity = '0'; }, 2000);
                  });
             }
+            window.toggleChat = function() {
+                const isHidden = chatWidget.classList.contains('hidden');
+                if (isHidden) {
+                    chatWidget.classList.remove('hidden');
+                    setTimeout(() => { chatWidget.classList.remove('opacity-0', 'translate-y-10'); }, 10);
+                } else {
+                    chatWidget.classList.add('opacity-0', 'translate-y-10');
+                     setTimeout(() => { chatWidget.classList.add('hidden'); }, 300);
+                }
+                chatIconOpen.classList.toggle('hidden');
+                chatIconClose.classList.toggle('hidden');
+            }
+            function handleChatSubmit(event) {
+                event.preventDefault();
+                const message = chatInput.value.trim();
+                if (message) {
+                    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, "_blank");
+                    chatInput.value = '';
+                    toggleChat();
+                }
+            }
+            window.openAiHelperModal = function() { aiHelperModal.classList.remove('hidden'); }
+            window.closeAiHelperModal = function() { aiHelperModal.classList.add('hidden'); }
             
-            // --- EVENT LISTENERS ---
             const packageButton = document.getElementById('package-button');
             const packageOptions = document.getElementById('package-options');
             const packageDropdown = document.getElementById('package-dropdown');
             const dropdownArrow = document.getElementById('dropdown-arrow');
+            
             packageButton.addEventListener('click', (event) => {
                 event.stopPropagation();
                 packageOptions.classList.toggle('hidden');
@@ -568,33 +678,35 @@
                     dropdownArrow.style.transform = 'rotate(0deg)';
                 }
             });
-
             startGameBtn.addEventListener('click', startGame);
-            canvas.addEventListener('click', () => { if (!gameOver) bird.velocity = bird.lift; });
+            canvas.addEventListener('click', () => { if (currentGameType === 'flappy' && !gameOver) bird.velocity = bird.lift; });
+            canvas.addEventListener('mousemove', (e) => { if(currentGameType === 'pong' && !gameOver) movePaddle(e); });
+            canvas.addEventListener('touchmove', (e) => { if(currentGameType === 'pong' && !gameOver) { e.preventDefault(); movePaddle(e.touches[0]); } }, { passive: false });
             copyCodeBtn.addEventListener('click', () => { copyToClipboard(discountCodeEl.textContent); });
             orderForm.addEventListener('submit', handleOrderSubmit);
-            
+            chatForm.addEventListener('submit', handleChatSubmit);
+            chatBubble.addEventListener('click', toggleChat);
             document.addEventListener('keydown', (event) => {
                 if (event.key === "Escape") {
                     if(!orderModal.classList.contains('hidden')) closeOrderModal();
                     if(!gameModal.classList.contains('hidden')) closeGameModal();
                     if(!discountModal.classList.contains('hidden')) closeDiscountModal();
+                    if(!gameSelectionModal.classList.contains('hidden')) closeGameSelectionModal();
                 }
                 if (event.code === 'Space') {
-                     event.preventDefault();
-                    if(!gameModal.classList.contains('hidden') && !startScreen.classList.contains('hidden')) {
-                        startGame();
-                    } else if (!gameOver && !gameModal.classList.contains('hidden')) {
-                        bird.velocity = bird.lift;
+                    if(!gameModal.classList.contains('hidden')) {
+                        event.preventDefault();
+                        if(!startScreen.classList.contains('hidden')) { startGame(); } 
+                        else if (currentGameType === 'flappy' && !gameOver) { bird.velocity = bird.lift; }
                     }
                 }
             });
 
-            // --- INITIAL RENDER AND CHECKS ---
             renderProducts();
             checkPlayStatus();
         });
     </script>
 </body>
 </html>
+
 
